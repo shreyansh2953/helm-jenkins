@@ -3,7 +3,20 @@ kind: StorageClass
 metadata:
   name: {{ .Release.Name }}-sc
 provisioner: {{ .Values.storage.provisioner }}
+parameters:
+      type: gp2
+      {{- if .Values.storage.availabilityDomain }}
+      availabilityDomain: {{ .Values.storage.availabilityDomain }}
+      {{- end }}
+      {{- if .Values.storage.compartmentId }}
+      compartmentId: {{ .Values.storage.compartmentId }}
+      {{- end }}
+      {{- if .Values.storage.volumePerference }}
+      volumePerference: {{ .Values.storage.volumePerference }}
+      {{- end }}
+reclaimPolicy: Retain
 volumeBindingMode: {{ .Values.storage.volumeBindingMode }}
+allowVolumeExpansion: true
 
 ---
 apiVersion: v1

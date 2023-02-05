@@ -28,6 +28,9 @@ storage:
   accessModes:
     - ReadWriteOnce
   mountPath: /var/jenkins_home
+  availabilityDomain:
+  compartmentId:
+  volumePerference:
 
 Image:
   Name: jenkins/jenkins
