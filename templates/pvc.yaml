@@ -4,7 +4,6 @@ metadata:
   name: {{ .Release.Name }}-sc
 provisioner: {{ .Values.storage.provisioner }}
 parameters:
-      type: gp2
       {{- if .Values.storage.availabilityDomain }}
       availabilityDomain: {{ .Values.storage.availabilityDomain }}
       {{- end }}

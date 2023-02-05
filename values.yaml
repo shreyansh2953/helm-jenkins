@@ -23,7 +23,7 @@ installPlugins:
 
 storage:
   size: 8Gi
-  provisioner: kubernetes.io/aws-ebs
+  provisioner: kubernetes.io/oci-volume-provisioner
   volumeBindingMode: WaitForFirstConsumer 
   accessModes:
     - ReadWriteOnce
