@@ -1,0 +1,61 @@
+# Default values for helm-jenkins.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+mynamespace: devops-tools
+
+access:
+  admin_user: cloudtester
+  admin_password: cloudtester
+  permissions:
+    - Overall/Administer
+
+ReplicaCount: 1
+masternumExecutors: 2
+
+installPlugins:
+      - configuration-as-code:1569.vb_72405b_80249
+      - authorize-project:1.4.0
+      - matrix-auth:3.1.6
+      - role-strategy:587.v2872c41fa_e51
+      - credentials-binding:1.23
+    
+
+storage:
+  size: 8Gi
+  provisioner: kubernetes.io/aws-ebs
+  volumeBindingMode: WaitForFirstConsumer 
+  accessModes:
+    - ReadWriteOnce
+  mountPath: /var/jenkins_home
+
+Image:
+  Name: jenkins/jenkins
+  Tag: lts
+
+Resources:
+  requests:
+     memory: 600m
+     cpu: 600m
+  limits:
+     memory: 2Gi
+     cpu: 1000m
+
+jenkins:
+  targetPort: 8080
+
+jnlp:
+  targetPort: 50000
+
+Service:
+   serviceType: LoadBalancer
+   Port: 8080
+  #  only give nodePort when serviceType: NodePort, else it can be empty
+   nodePort: 32324
+
+# if you need this custom admin service account than set it to true , else set it to false for default serviceAccount to be used in that namespace
+ServiceAccount: true
+
+rbac:
+  resources: ["*"]
+  verbs: ["*"]

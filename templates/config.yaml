@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-plugins-config
+  {{- if .Values.mynamespace }}
+  namespace: {{ .Values.mynamespace }}
+  {{- else }}
+  namespace: default
+  {{- end }}
+data:
+  apply_config.sh: |-
+    echo "applying Jenkins configuration"
+    mkdir -p /usr/share/jenkins/ref/secrets/;
+    echo "disable Setup Wizard"
+    echo $JENKINS_VERSION > /var/jenkins_home/jenkins.install.UpgradeWizard.state
+    echo $JENKINS_VERSION > /var/jenkins_home/jenkins.install.InstallUtil.lastExecVersion
+    echo "download plugins"
+    # Install missing plugins
+    cp /usr/share/jenkins/ref/plugins.txt /var/jenkins_home;
+    rm -rf /usr/share/jenkins/ref/plugins/*.lock
+    jenkins-plugin-cli --verbose --war /usr/share/jenkins/jenkins.war --plugin-file /var/jenkins_home/plugins.txt -d /var/jenkins_home/plugins/ --latest false 
+    echo "finished initialization"
+  plugins.txt: |-
+  {{- range $installPlugin := .Values.installPlugins }}
+     {{- $installPlugin | nindent 4 }}
+  {{- end }}
+
+
+

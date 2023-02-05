@@ -1,0 +1,26 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Release.Name }}-sc
+provisioner: {{ .Values.storage.provisioner }}
+volumeBindingMode: {{ .Values.storage.volumeBindingMode }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-pvc
+  {{- if .Values.mynamespace }}
+  namespace: {{ .Values.mynamespace }}
+  {{- else }}
+  namespace: default
+  {{- end }}
+spec:
+  storageClassName: {{ .Release.Name }}-sc
+  {{- range .Values.storage.accessModes }}
+  accessModes:
+    - {{ . }}
+  {{- end }}  
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}

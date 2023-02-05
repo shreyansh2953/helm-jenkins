@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-depl
+  {{- if .Values.mynamespace }}
+  namespace: {{ .Values.mynamespace }}
+  {{- else }}
+  namespace: default
+  {{- end }}
+spec:
+  replicas: {{ .Values.ReplicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-server
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-server
+    spec:
+      securityContext:
+            fsGroup: 1000 
+            runAsUser: 1000
+      {{- if .Values.ServiceAccount }}
+      serviceAccountName: {{ .Release.Name }}-admin
+      {{- end }}
+      initContainers:
+         - name: {{ .Release.Name }}-initcontainer
+           image: {{ .Values.Image.Name }}:{{ .Values.Image.Tag }}
+           env:
+             - name: JENKINS_USER
+               valueFrom:
+                   secretKeyRef:
+                       name: {{ .Release.Name }}-secret
+                       key: jenkins_user
+             - name: JENKINS_PASSWORD
+               valueFrom:
+                    secretKeyRef:
+                        name: {{ .Release.Name }}-secret
+                        key: jenkins_password
+           command: [ "sh", "/usr/share/jenkins/ref/apply_config.sh" ]
+           volumeMounts:
+            - name: {{ .Release.Name }}-vol
+              mountPath: {{ .Values.storage.mountPath }}
+            - name: {{ .Release.Name }}-config-vol
+              mountPath: /usr/share/jenkins/ref
+            - mountPath: /usr/share/jenkins/ref/secrets/
+              name: secrets-dir
+      containers:
+        - name: {{ .Release.Name }}-container
+          image: {{ .Values.Image.Name }}:{{ .Values.Image.Tag }}
+          imagePullPolicy: "Always"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTS
+              value: >
+                 -Dcasc.reload.token=$(POD_NAME)
+            - name: JENKINS_USER
+              valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-secret
+                    key: jenkins_user
+            - name: JENKINS_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                      name: {{ .Release.Name }}-secret
+                      key: jenkins_password
+            - name: JENKINS_SLAVE_AGENT_PORT
+              value: {{ .Values.jnlp.targetPort | quote }}
+            - name: CASC_JENKINS_CONFIG
+              value: /var/jenkins_home/casc_configs
+          resources:
+            limits:
+              memory: {{ .Values.Resources.limits.memory | quote }}
+              cpu: {{ .Values.Resources.limits.cpu | quote }}
+            requests:
+              memory: {{ .Values.Resources.requests.memory | quote }}
+              cpu: {{ .Values.Resources.requests.cpu | quote }}
+          ports:
+            - name: httpport
+              containerPort: {{ .Values.jenkins.targetPort }}
+            - name: jnlpport
+              containerPort: {{ .Values.jnlp.targetPort }}
+          livenessProbe:
+            httpGet:
+              path: "/login"
+              port: {{ .Values.jenkins.targetPort }}
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: "/login"
+              port: {{ .Values.jenkins.targetPort }}
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: {{ .Release.Name }}-vol
+              mountPath: {{ .Values.storage.mountPath }}
+            - name: {{ .Release.Name }}-casc-config-vol
+              mountPath: /var/jenkins_home/casc_configs
+            - name: {{ .Release.Name }}-config-vol
+              mountPath: /usr/share/jenkins/ref
+            - mountPath: /usr/share/jenkins/ref/secrets/
+              name: secrets-dir
+                    
+      volumes:
+        - name: {{ .Release.Name }}-vol
+          persistentVolumeClaim:
+              claimName: {{ .Release.Name }}-pvc
+        - name: {{ .Release.Name }}-config-vol
+          configMap:
+             name: {{ .Release.Name }}-plugins-config
+        - name: secrets-dir
+          emptyDir: {}
+        - name: {{ .Release.Name }}-casc-config-vol
+          configMap:
+             name: {{ .Release.Name }}-casc-config
+                  

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-casc-config
+  {{- if .Values.mynamespace }}
+  namespace: {{ .Values.mynamespace }}
+  {{- else }}
+  namespace: default
+  {{- end }}
+data:
+  jcasc-default-config.yaml: |-  
+       jenkins:
+         securityRealm:
+                   local:
+                     allowsSignup: false
+                     users:
+                       - id: ${JENKINS_USER}
+                         password: ${JENKINS_PASSWORD}
+                       - id: user1
+                         password: password123
+         authorizationStrategy:
+                roleBased:
+                   roles:
+                     global:
+                       - name: "admin"
+                         description: "Jenkins administrators"
+                         permissions:
+                         {{- range $p := .Values.access.permissions }}
+                              - {{ $p | quote }}
+                         {{- end }}
+                         assignments:
+                              - "${JENKINS_USER}"
+                       - name: "readonly"
+                         description: "Read-only users"
+                         permissions:
+                              - "Overall/Read"
+                              - "Job/Read"
+                         assignments:
+                              - "user1"
+         numExecutors: {{ .Values.masternumExecutors }}    
+         remotingSecurity:
+                enabled: true
+       security:
+            queueItemAuthenticator:
+              authenticators:
+                 - global:
+                      strategy: triggeringUsersAuthorizationStrategy
+       unclassified:
+           location:
+              {{- if .Values.mynamespace }}
+              url: http://{{ .Release.Name }}-service.{{ .Values.mynamespace }}:8080
+              {{- else}}
+              url: http://{{ .Release.Name }}-service:8080
+              {{- end }}

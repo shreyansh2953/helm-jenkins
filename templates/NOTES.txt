@@ -1,0 +1,5 @@
+# author:- Shreyansh Nowlkha
+
+Note:- Provided ClusterRole to the custom service account , which include every action on every resource
+Thanks For installing this Helm chart
+
