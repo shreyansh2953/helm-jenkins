@@ -23,7 +23,7 @@ installPlugins:
 
 storage:
   size: 8Gi
-  provisioner: kubernetes.io/oci-volume-provisioner
+  provisioner: oracle.com/oci
   volumeBindingMode: WaitForFirstConsumer 
   accessModes:
     - ReadWriteOnce
