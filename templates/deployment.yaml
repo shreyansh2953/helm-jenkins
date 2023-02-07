@@ -75,11 +75,11 @@ spec:
               value: /var/jenkins_home/casc_configs
           resources:
             limits:
-              memory: {{ .Values.Resources.limits.memory | quote }}
-              cpu: {{ .Values.Resources.limits.cpu | quote }}
+              memory: {{ .Values.Resources.limits.memory }}
+              cpu: {{ .Values.Resources.limits.cpu }}
             requests:
-              memory: {{ .Values.Resources.requests.memory | quote }}
-              cpu: {{ .Values.Resources.requests.cpu | quote }}
+              memory: {{ .Values.Resources.requests.memory }}
+              cpu: {{ .Values.Resources.requests.cpu }}
           ports:
             - name: httpport
               containerPort: {{ .Values.jenkins.targetPort }}
