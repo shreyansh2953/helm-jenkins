@@ -51,7 +51,7 @@ jnlp:
   targetPort: 50000
 
 Service:
-   serviceType: LoadBalancer
+   serviceType: ClusterIp
    Port: 8080
   #  only give nodePort when serviceType: NodePort, else it can be empty
    nodePort: 32324
