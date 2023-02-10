@@ -10,7 +10,10 @@ metadata:
 spec:
   selector: 
     app: {{ .Release.Name }}-server
-  type: {{ .Values.Service.serviceType }}  
+  type: {{ .Values.Service.serviceType }} 
+  {{- if .Values.Service.LoadBalancerIP }}
+  loadBalancerIP: {{ .Values.Service.LoadBalancerIP }}
+  {{- end }} 
   ports:
     - port: {{ .Values.Service.Port }}
       targetPort: {{ .Values.jenkins.targetPort }}
