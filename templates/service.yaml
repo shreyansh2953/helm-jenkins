@@ -10,17 +10,19 @@ metadata:
 spec:
   selector: 
     app: {{ .Release.Name }}-server
-  type: {{ .Values.Service.serviceType }} 
-  {{- if .Values.Service.LoadBalancerIP }}
-  loadBalancerIP: {{ .Values.Service.LoadBalancerIP }}
-  {{- end }} 
+  type: {{ .Values.Service.serviceType }}  
   ports:
     - port: {{ .Values.Service.Port }}
       targetPort: {{ .Values.jenkins.targetPort }}
       {{- if eq .Values.Service.serviceType "NodePort" }}
       nodePort: {{ .Values.Service.nodePort }}
       {{- end }}
-
+{{- if .Values.Service.LoadBalancerIP }}
+status:
+  loadBalancer:
+     ingress:
+     - ip: {{ .Values.Service.LoadBalancerIP }}
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
